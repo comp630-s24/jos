@@ -172,7 +172,7 @@ QEMU_VMX_OPTS = '+vmx-secondary-ctls,+vmx-ept,+vmx-entry-ia32e-mode,+vmx-entry-l
 endif
 
 ## We need KVM for qemu to export VMX
-QEMUOPTS = -cpu kvm64,+vmx,$(QEMU_VMX_OPTS) $(KVM) -m 256 -drive format=raw,file=$(OBJDIR)/kern/kernel.img -serial mon:stdio -gdb tcp::$(GDBPORT)
+QEMUOPTS = -no-reboot -no-shutdown -cpu kvm64,+vmx,$(QEMU_VMX_OPTS) $(KVM) -m 256 -drive format=raw,file=$(OBJDIR)/kern/kernel.img -serial mon:stdio -gdb tcp::$(GDBPORT)
 QEMUOPTS += $(shell if $(QEMU) -nographic -help | grep -q '^-D '; then echo '-D qemu.log'; fi)
 IMAGES = $(OBJDIR)/kern/kernel.img
 QEMUOPTS += -smp cpus=$(CPUS),cores=1,threads=1,sockets=$(CPUS)
