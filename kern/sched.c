@@ -5,7 +5,7 @@
 #include <kern/pmap.h>
 #include <kern/monitor.h>
 
-void sched_halt(void);
+__attribute__((__noreturn__)) void sched_halt(void);
 
 
 #ifndef VMM_GUEST
@@ -55,7 +55,7 @@ sched_yield(void)
 // Halt this CPU when there is nothing to do. Wait until the
 // timer interrupt wakes it up. This function never returns.
 //
-void
+__attribute__((__noreturn__)) void
 sched_halt(void)
 {
 	int i;
@@ -87,14 +87,19 @@ sched_halt(void)
 	unlock_kernel();
 
 	// Reset stack pointer, enable interrupts and then halt.
-	asm volatile (
-		"movq $0, %%rbp\n"
-		"movq %0, %%rsp\n"
-		"pushq $0\n"
-		"pushq $0\n"
-		// Uncomment the sti  for Part C, Exercise 13
-		// "sti\n"
-		"hlt\n"
-		: : "a" (thiscpu->cpu_ts.ts_esp0));
+	// There are cases where an interrupt can resume execution
+	// on the instruction after the hlt, so run in a loop.
+	while (1) {
+		asm volatile (
+			"movq $0, %%rbp\n"
+			"movq %0, %%rsp\n"
+			"pushq $0\n"
+			"pushq $0\n"
+			// Uncomment the sti  for Part C, Exercise 13
+			// "sti\n"
+			"hlt\n"
+			: : "a" (thiscpu->cpu_ts.ts_esp0));
+	}
+	// Should never get here
+	assert(0);
 }
-
